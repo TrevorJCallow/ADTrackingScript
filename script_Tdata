@@ -1,0 +1,47 @@
+(function() {
+    // Function send tracking data to the server
+    function sendAdTrackingData(eventType, adId, userId) {
+        const trackingData = {
+            eventType: eventType,
+            adId: adId,
+            userId: userId,
+            timestamp: new Date().toISOString()
+        };
+
+        // Export Server
+        fetch('https://your-server.com/track-ad', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(trackingData)
+        }).catch((err) => {
+            console.error('Ad tracking failed', err);
+        });
+    }
+
+    // usage:tracking ad clicks
+    document.querySelectorAll('.ad').forEach(ad => {
+        ad.addEventListener('click', function() {
+            const adId = this.getAttribute('data-ad-id');
+            const userId = this.getAttribute('data-user-id'); // Optional
+            sendAdTrackingData('click', adId, userId);
+        });
+    });
+
+    // basic visibility check
+    const ads = document.querySelectorAll('.ad');
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const ad = entry.target;
+                const adId = ad.getAttribute('data-ad-id');
+                const userId = ad.getAttribute('data-user-id'); // Optional
+                sendAdTrackingData('view', adId, userId);
+                observer.unobserve(ad); // Prevent duplicate tracking
+            }
+        });
+    });
+
+    ads.forEach(ad => observer.observe(ad));
+})();
